@@ -3,4 +3,5 @@ BIN=hdmi_play.bin
 LDFLAGS+=-lilclient
 
 include ./Makefile.include
+CFLAGS+=-O2 -march=native
 
