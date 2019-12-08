@@ -1,6 +1,6 @@
 # hdmi_play
 
-Raspberry pi　HDMI 8ch LPCM 96kHz 24bit output
+## Raspberry pi　HDMI 8ch LPCM 96kHz 24bit output
 
 
 
