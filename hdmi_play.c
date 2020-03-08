@@ -53,6 +53,7 @@ Modified by Amanogawa Audio Lab
 #define SLEEPTIME 5*1000
 
 #define DEBUG_PRINT(...)  fprintf(stderr, __VA_ARGS__)
+#define N 80
 
 typedef int int32_t;
 
@@ -383,7 +384,7 @@ void play_hdmi(int samplerate)
       if (ret_n != BUFFER_SIZE_SAMPLES * 8){
           //DEBUG_PRINT("DEBUG:%d\n",ret_n);
           for (int i = ret_n; i < BUFFER_SIZE_SAMPLES * 8; i++){
-             *p++ = 0;
+             *(p + i) = 0;
           }
       }  
 
@@ -393,6 +394,65 @@ void play_hdmi(int samplerate)
 //         DEBUG_PRINT("DEBUG:get_latency\n");
 //         usleep(CTTW_SLEEP_TIME*1000);
 //      }
+
+      ret = audioplay_play_buffer(st, buf, buffer_size);
+      assert(ret == 0);
+   }
+
+   audioplay_delete(st);
+}
+
+void play_hdmi4(int samplerate) 
+{
+   int bitdepth = 32;
+   int nchannels = 8;
+   char audio_dest[] = "hdmi";
+   AUDIOPLAY_STATE_T *st;
+   int32_t ret;
+   int32_t INBUF[BUFFER_SIZE_SAMPLES][8]={};
+   int buffer_size = (BUFFER_SIZE_SAMPLES * bitdepth * OUT_CHANNELS(nchannels))>>3;
+
+   ret = audioplay_create(&st, samplerate, nchannels, bitdepth, BN, buffer_size);
+   assert(ret == 0);
+
+   ret = audioplay_set_dest(st, audio_dest);
+   assert(ret == 0);
+
+   while (1)
+   {
+      uint8_t *buf;
+      int32_t *p;
+      int32_t *p2;
+      p2 = (int32_t *)INBUF;
+      //uint32_t latency;
+      int ret_n;
+
+      while((buf = audioplay_get_buffer(st)) == NULL){
+         //DEBUG_PRINT("DEBUG:audioplay_get_buffer待ち");
+         usleep(SLEEPTIME);
+      }
+
+      p = (int32_t *) buf;
+
+      // fill the buffer from STDIN
+      //ret_n = fread(p,sizeof(int32_t),BUFFER_SIZE_SAMPLES * 8, stdin);
+      ret_n = fread(p2,sizeof(int32_t),BUFFER_SIZE_SAMPLES * 8, stdin);
+      if (ret_n != BUFFER_SIZE_SAMPLES * 8){
+          //DEBUG_PRINT("DEBUG:%d\n",ret_n);
+          for (int i = ret_n; i < BUFFER_SIZE_SAMPLES * 8; i++){
+             *(p2 + i) = 0;
+          }
+      }  
+      for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++){
+         *(p + 8*i + 0) = *(p2 + 8*i + 0);    
+         *(p + 8*i + 1) = *(p2 + 8*i + 1);    
+         *(p + 8*i + 2) = *(p2 + 8*i + 6);    
+         *(p + 8*i + 3) = *(p2 + 8*i + 7);    
+         *(p + 8*i + 4) = *(p2 + 8*i + 3);    
+         *(p + 8*i + 5) = *(p2 + 8*i + 2);    
+         *(p + 8*i + 6) = *(p2 + 8*i + 4);    
+         *(p + 8*i + 7) = *(p2 + 8*i + 5);    
+      }
 
       ret = audioplay_play_buffer(st, buf, buffer_size);
       assert(ret == 0);
@@ -414,6 +474,42 @@ void printhelp(void)
   return;
 }
 
+int chk_pi4(void)
+{
+  // 判別不能 -1
+  // pi3 30
+  // pi3+ 31
+  // pi4 40
+  // pi2 20
+  // pi0  0
+  // その他 -2
+  FILE *fp;
+  char buf[N];
+
+  if ((fp = fopen("/proc/device-tree/model","r")) == NULL){
+      return -1;
+  }
+  fgets(buf, N, fp);
+  fclose(fp);
+
+  if ((strstr(buf, "Pi 4 ")) != NULL){
+    return 40;
+  }
+  if ((strstr(buf, "Pi 3 Model B Plus")) != NULL){
+    return 31;
+  }
+  if ((strstr(buf, "Pi 3 ")) != NULL){
+    return 30;
+  }
+  if ((strstr(buf, "Pi 2 ")) != NULL){
+    return 20;
+  }
+  if ((strstr(buf, "Pi Zero W ")) != NULL){
+    return 0;
+  }
+  return -2;
+}
+
 
 
 int main (int argc, char **argv)
@@ -424,9 +520,23 @@ int main (int argc, char **argv)
       return 1;
    }
 
+   int pi_ver;
+   pi_ver = chk_pi4();
+
+   void (*funcp)(int); 
+
+   if (pi_ver < 0){
+     return 1;
+   } else if (pi_ver == 40) {
+     funcp = play_hdmi4;
+   } else {
+     funcp = play_hdmi;
+   }
+
    samplerate = atoi(argv[1]);
    bcm_host_init();
-   play_hdmi(samplerate);
+   //play_hdmi(samplerate);
+   funcp(samplerate);
    return 0;
 }
 
