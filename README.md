@@ -25,13 +25,14 @@ Example: sox test.wav -t .s16 - | brutefir 3way.conf | hdmi_play2.bin 44100
 
 ### Notice:
 ChannelMapping is changed (2021/02/23)
-0 : LF
-1 : RF
-2 : LB
-3 : RB
-4 : CF
-5 : LFE
-6 : LS
-7 : RS
+
+0 : LF  
+1 : RF  
+2 : LB  
+3 : RB  
+4 : CF  
+5 : LFE  
+6 : LS  
+7 : RS  
 
 You must connect a full-range unit and check channel mapping, befor using expensive units.
