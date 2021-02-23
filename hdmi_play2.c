@@ -1,6 +1,6 @@
 /*
 Copyright (c) 2012, Broadcom Europe Ltd
-Copyright (c) 2015-2019, Amanogawa Audio Labo
+Copyright (c) 2015-2021, Amanogawa Audio Labo
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ Original file is /opt/vc/src/hello_pi/hello_audio/aucdio.c (Raspberry pi)
 Modified by Amanogawa Audio Lab
 */
 
-// hdmi_play.c version 0.13
+// hdmi_play2.c version 0.15
 
 
 // Audio output demo using OpenMAX IL though the ilcient helper library
@@ -402,7 +402,7 @@ void play_hdmi(int samplerate)
    audioplay_delete(st);
 }
 
-void play_hdmi4(int samplerate) 
+void play_hdmi_old(int samplerate) 
 {
    int bitdepth = 32;
    int nchannels = 8;
@@ -446,12 +446,12 @@ void play_hdmi4(int samplerate)
       for (int i = 0; i < BUFFER_SIZE_SAMPLES; i++){
          *(p + 8*i + 0) = *(p2 + 8*i + 0);    
          *(p + 8*i + 1) = *(p2 + 8*i + 1);    
-         *(p + 8*i + 2) = *(p2 + 8*i + 6);    
-         *(p + 8*i + 3) = *(p2 + 8*i + 7);    
-         *(p + 8*i + 4) = *(p2 + 8*i + 3);    
-         *(p + 8*i + 5) = *(p2 + 8*i + 2);    
-         *(p + 8*i + 6) = *(p2 + 8*i + 4);    
-         *(p + 8*i + 7) = *(p2 + 8*i + 5);    
+         *(p + 8*i + 2) = *(p2 + 8*i + 5);    
+         *(p + 8*i + 3) = *(p2 + 8*i + 4);    
+         *(p + 8*i + 4) = *(p2 + 8*i + 6);    
+         *(p + 8*i + 5) = *(p2 + 8*i + 7);    
+         *(p + 8*i + 6) = *(p2 + 8*i + 2);    
+         *(p + 8*i + 7) = *(p2 + 8*i + 3);    
       }
 
       ret = audioplay_play_buffer(st, buf, buffer_size);
@@ -467,8 +467,8 @@ void printhelp(void)
     "This program receive 8ch 32bit data from stdin and output to HDMI\n"
     "(Raspberry Pi)  "
     "Using OpenMAX IL, not ALSA\n\n"
-    "Usage: hdmi_play.bin rate\n\n"
-    "Example: sox test.wav -t .s16 - | brutefir 3way.conf | hdmi_play.bin 44100\n\n";
+    "Usage: hdmi_play2.bin rate\n\n"
+    "Example: sox test.wav -t .s16 - | brutefir 3way.conf | hdmi_play2.bin 44100\n\n";
 
   fprintf(stderr, "%s", s);
   return;
@@ -527,8 +527,8 @@ int main (int argc, char **argv)
 
    if (pi_ver < 0){
      return 1;
-   } else if (pi_ver == 40) {
-     funcp = play_hdmi4;
+   } else if (pi_ver < 40) {
+     funcp = play_hdmi_old;
    } else {
      funcp = play_hdmi;
    }
