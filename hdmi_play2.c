@@ -31,7 +31,7 @@ Original file is /opt/vc/src/hello_pi/hello_audio/aucdio.c (Raspberry pi)
 Modified by Amanogawa Audio Lab
 */
 
-// hdmi_play2.c version 0.15
+// hdmi_play2.c version 0.16
 
 
 // Audio output demo using OpenMAX IL though the ilcient helper library
@@ -477,9 +477,10 @@ void printhelp(void)
 int chk_pi4(void)
 {
   // 判別不能 -1
-  // pi3 30
-  // pi3+ 31
   // pi4 40
+  // pi3B+ 31
+  // pi3A+ 32
+  // pi3 30
   // pi2 20
   // pi0  0
   // その他 -2
@@ -497,6 +498,9 @@ int chk_pi4(void)
   }
   if ((strstr(buf, "Pi 3 Model B Plus")) != NULL){
     return 31;
+  }
+  if ((strstr(buf, "Pi 3 Model A Plus")) != NULL){
+    return 32;
   }
   if ((strstr(buf, "Pi 3 ")) != NULL){
     return 30;
